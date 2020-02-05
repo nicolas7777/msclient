@@ -1,5 +1,8 @@
-package com.microservicio.app.client;
+package com.microservicio.app.config;
 
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.microservicio.app.dto.AccountDto;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Qualifier;

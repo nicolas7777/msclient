@@ -1,4 +1,4 @@
-package com.microservicio.app.repository;
+package com.microservicio.app.dao;
 
 
 import org.springframework.data.mongodb.repository.Query;
@@ -8,8 +8,10 @@ import com.microservicio.app.document.Client;
 
 import reactor.core.publisher.Mono;
 
-public interface ClientRepository extends ReactiveMongoRepository<Client,String> {
+public interface ClientDao extends ReactiveMongoRepository<Client,String> {
 	
 	//@Query("{ 'documentnumber' : ?0 }")
 	Mono<Client> findByDocumentnumber(String documentnumber);
+	
+
 }

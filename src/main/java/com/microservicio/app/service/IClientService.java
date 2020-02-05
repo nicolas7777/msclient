@@ -19,6 +19,7 @@ public interface IClientService {
     public Mono<AccountDto> create(ClientDto clientdto) ;    
     public Mono<Client> findByNumberDocument(String numberdocument) ;
     public Flux<Client> findAll() ;
+    public Mono<Client> findById(String id);
     
     
 }

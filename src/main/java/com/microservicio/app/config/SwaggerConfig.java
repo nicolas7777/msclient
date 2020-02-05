@@ -1,4 +1,4 @@
-package com.microservicio.app;
+package com.microservicio.app.config;
 
 import java.util.Collections;
 

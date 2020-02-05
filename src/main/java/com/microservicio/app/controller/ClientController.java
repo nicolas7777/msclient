@@ -90,6 +90,13 @@ public class ClientController {
 		return this.clientService.findAll();
 	}
 	
+	@GetMapping("/findbyid/{id}")
+	@ApiOperation(value = "*.*", notes="")	
+	Mono<Client> findById(@PathVariable String id){
+		//LOGGER.info("TransactionController");
+		return this.clientService.findById(id);
+	}
+	
 }
 
 

@@ -1,4 +1,4 @@
-package com.microservicio.app.implement;
+package com.microservicio.app.service;
 
 import java.net.URI;
 import java.util.Date;
@@ -12,12 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.microservicio.app.client.AccountClient;
+import com.microservicio.app.config.AccountClient;
+import com.microservicio.app.dao.ClientDao;
 import com.microservicio.app.document.Client;
 import com.microservicio.app.dto.AccountDto;
 import com.microservicio.app.dto.ClientDto;
-import com.microservicio.app.repository.ClientRepository;
-import com.microservicio.app.service.IClientService;
+import com.mongodb.async.client.Observable;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -28,14 +28,14 @@ import reactor.core.publisher.Mono;
 public class ClientServiceImpl implements IClientService {
 	
 	@Autowired
-    private ClientRepository clientRepository; 
+    private ClientDao clientDao; 
 	
 	@Autowired
 	private AccountClient accountClient;
     
     @Override
     public Mono<Client> update(String documentnumber, Client client) { 
-    			return this.clientRepository
+    			return this.clientDao
     		            .findByDocumentnumber(documentnumber)
     		            .map(p -> new Client(  
     		            p.getId(),
@@ -46,12 +46,12 @@ public class ClientServiceImpl implements IClientService {
 	            		client.getDate(),
 	            		client.getStatus()
 	            		))
-    		            .flatMap(this.clientRepository::save);
+    		            .flatMap(this.clientDao::save);
     }
     
     @Override
     public Mono<Client> deleteByDocumentNumber(String documentnumber) {    
-    	 return this.clientRepository
+    	 return this.clientDao
                .findByDocumentnumber(documentnumber)
                .map(p-> new Client(
             		   		p.getId(),
@@ -63,16 +63,13 @@ public class ClientServiceImpl implements IClientService {
 			               	"DELETED"			               	
 			   				)
             		   )
-               .flatMap(this.clientRepository::save); 
+               .flatMap(this.clientDao::save); 
     }
 
     
     @Override
     public Mono<Client> createclient(Client clientdto)  {  
-//    	return this.clientRepository.findByDocumentNumber(client.getDocumentnumber())    			
-//		.flatMap(p->{ 
-//			if(p.toString().equals("")) {
-				return this.clientRepository.save(new Client (
+				return this.clientDao.save(new Client (
 						"CLI"+UUID.randomUUID().toString(),
 						clientdto.getFirstname(),
 						clientdto.getLastname(),
@@ -82,12 +79,18 @@ public class ClientServiceImpl implements IClientService {
 						"NEW"
 						));
     }
+    //Este metodo permite verificar si existe un cliente, si existe crea solo la cuenta 
+    //si no existe lo crea y crea la cuenta.
     @Override
     public Mono<AccountDto> create(ClientDto clientdto) {  
-//    	return this.clientRepository.findByDocumentNumber(client.getDocumentnumber())    			
-//    			.flatMap(p->{ 
-//    				if(p.toString().equals("")) {
-	    				return this.clientRepository.save(new Client (
+    	//Se tiene que inicializar la variable cliente porque te trae null
+    	Mono<Client> client = this.clientDao.findByDocumentnumber(clientdto.getDocumentnumber());
+    	
+    	return client.defaultIfEmpty(new Client())
+    			.flatMap(p->{
+    				
+    				if(p.getDocumentnumber() == null) {
+    					return this.clientDao.save(new Client (
 	    						"CLI"+UUID.randomUUID().toString(),
 	    						clientdto.getFirstname(),
 	    						clientdto.getLastname(),
@@ -96,27 +99,33 @@ public class ClientServiceImpl implements IClientService {
 								new Date(),
 								"NEW"
 								))
-	    						.flatMap(p->{
-	    							clientdto.account.setIdcliente(p.getId());
-	    							return this.accountClient.createAccount(clientdto.account);
-	    							
-	    							
-	    						});  				
-//    				}else {
-//    					return this.clientRepository.findByDocumentNumber(client.getDocumentnumber());
-//    				}
-//    			}); 		
+	    						.flatMap(q->{
+	    							clientdto.account.setIdclient(q.getId());
+	    							return this.accountClient.createAccount(clientdto.account);							
+	    						});  								
+    				}else {  					
+    					clientdto.account.setIdclient(p.getId());
+						return this.accountClient.createAccount(clientdto.account);
+							
+    				}
+    			});
+            		
 						 	
     }	
 
 	@Override
 	public Mono<Client> findByNumberDocument(String numberdocument) {
-		return this.clientRepository.findByDocumentnumber(numberdocument);
+		return this.clientDao.findByDocumentnumber(numberdocument);
 	}
 
 	@Override
 	public Flux<Client> findAll() {
-		return this.clientRepository.findAll();
+		return this.clientDao.findAll();
+	}
+
+	@Override
+	public Mono<Client> findById(String id) {
+		return this.clientDao.findById(id);
 	}	
 
 	

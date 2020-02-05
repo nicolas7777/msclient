@@ -19,7 +19,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class AccountDto {
-	private String idcliente;
+	private String idclient;
 	private String bankname;
 	private String kindaccount;
 	private String accountcode;
